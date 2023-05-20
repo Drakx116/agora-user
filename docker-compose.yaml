@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  app:
+    container_name: SERVICE_NAME
+    image: microservice/php8.2-apache:v1.0.0
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.SERVICE_NAME.rule=Host(`SERVICE_NAME.lan`)"
+      - "traefik.http.services.SERVICE_NAME.loadbalancer.server.port=80"
+    networks:
+      - traefik
+    volumes:
+      - ./:/var/www/html/app
+      - ./.docker/apache/vhost.conf:/etc/apache2/sites-enabled/000-default.conf
+
+  db:
+    container_name: SERVICE_NAME_db
+    image: mysql:8
+    networks:
+      - traefik
+    volumes:
+      - db-data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: app
+      MYSQL_USER: app
+      MYSQL_PASSWORD: password
+
+networks:
+  traefik:
+    name: traefik_webgateway
+
+volumes:
+  db-data:
